@@ -1,0 +1,40 @@
+<!-- Add this to the stats-grid div -->
+<div class="stat-box">
+    <div class="stat-label">Detected Objects</div>
+    <div class="stat-value" id="detected-objects">None</div>
+</div>
+<div class="stat-box">
+    <div class="stat-label">Detection Count</div>
+    <div class="stat-value" id="detection-count">0</div>
+</div>
+
+<!-- Update the JavaScript -->
+<script>
+    // Update the event source handler
+    evtSource.onmessage = function(event) {
+        const stats = JSON.parse(event.data);
+
+        // Update existing stats
+        document.getElementById('fps').textContent = stats.actual_fps.toFixed(1);
+        document.getElementById('motion-percentage').textContent =
+            stats.motion_percentage.toFixed(1) + '%';
+        document.getElementById('motion-detected').textContent =
+            stats.motion_detected ? 'Yes' : 'No';
+        document.getElementById('timestamp').textContent = stats.timestamp;
+
+        // Update object detection stats
+        if (stats.objects_detected && stats.objects_detected.length > 0) {
+            const objectsList = stats.objects_detected
+                .map(obj => `${obj.class} (${obj.confidence.toFixed(2)})`)
+                .join(', ');
+            document.getElementById('detected-objects').textContent = objectsList;
+        } else {
+            document.getElementById('detected-objects').textContent = 'None';
+        }
+        document.getElementById('detection-count').textContent = stats.detection_count;
+
+        // Update styling
+        const motionBox = document.getElementById('motion-detected').parentElement;
+        motionBox.style.backgroundColor = stats.motion_detected ? '#d4edda' : '#f8f9fa';
+    };
+</script>

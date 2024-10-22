@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  rtsp-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rtsp-processor
+    restart: unless-stopped
+    environment:
+      - SOURCE_RTSP_URL=${SOURCE_RTSP_URL:-rtsp://example.com/stream1}
+      - TARGET_RTSP_URL=${TARGET_RTSP_URL:-rtsp://example.com/stream2}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MOTION_THRESHOLD=${MOTION_THRESHOLD:-25.0}
+      - BLUR_SIZE=${BLUR_SIZE:-21}
+      - MIN_OBJECT_SIZE=${MIN_OBJECT_SIZE:-1000}
+      - MAX_OBJECT_SIZE=${MAX_OBJECT_SIZE:-100000}
+      - HISTORY_SIZE=${HISTORY_SIZE:-30}
+      - RTSP_BUFFER_SIZE=${RTSP_BUFFER_SIZE:-1048576}
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    ports:
+      - "8080:8080"  # For health checks and metrics
+    networks:
+      - rtsp-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: rtsp-monitoring
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - rtsp-network
+    depends_on:
+      - rtsp-processor
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rtsp-grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - rtsp-network
+    depends_on:
+      - monitoring
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  rtsp-network:
+    driver: bridge
