@@ -120,6 +120,187 @@ python -m mediainspect_rtsp.network.main example.com --common --timeout 1.5
 - `parse_ports(ports_str: str) -> List[int]`: Parse port string (e.g., "80,443,8080-8090")
 - `format_scan_results(results: ScanResult) -> str`: Format results as a string
 
+### Advanced Examples
+
+#### Example 1: Network Inventory
+
+Create an inventory of all services running on common ports across multiple hosts:
+
+```python
+import asyncio
+from mediainspect_rtsp.network import SimpleNetworkScanner
+
+async def scan_hosts(hosts):
+    scanner = SimpleNetworkScanner()
+    tasks = [scanner.scan_common_ports(host) for host in hosts]
+    return await asyncio.gather(*tasks)
+
+hosts = ["192.168.1.1", "192.168.1.100", "192.168.1.200"]
+results = asyncio.run(scan_hosts(hosts))
+
+for host, result in zip(hosts, results):
+    print(f"\n{host} - {result.open_ports} open ports:")
+    for service in result.services:
+        if service.is_up:
+            print(f"  - {service.port}/tcp: {service.service}")
+```
+
+#### Example 2: Security Check for Common Vulnerable Services
+
+Check for potentially vulnerable services that should be secured:
+
+```python
+import asyncio
+from mediainspect_rtsp.network import SimpleNetworkScanner
+
+VULNERABLE_SERVICES = {
+    'ftp': 21,
+    'telnet': 23,
+    'http': 80,
+    'snmp': 161,
+    'mssql': 1433,
+    'oracle': 1521,
+    'mysql': 3306,
+    'rdp': 3389,
+    'vnc': [5900, 5901]
+}
+
+async def check_vulnerable_services(host):
+    scanner = SimpleNetworkScanner()
+    ports = []
+    
+    # Get all ports from vulnerable services
+    for service in VULNERABLE_SERVICES.values():
+        if isinstance(service, list):
+            ports.extend(service)
+        else:
+            ports.append(service)
+            
+    results = await scanner.scan_ports(host, ports)
+    
+    print(f"\nSecurity check for {host}:")
+    for service in results.services:
+        if service.is_up:
+            status = "⚠️  WARNING" if service.port in [21, 23, 161] else "ℹ️  INFO"
+            print(f"{status} - {service.port}/tcp: {service.service} is running")
+            if service.banner:
+                print(f"     Banner: {service.banner[:100]}...")
+
+# Run the check
+asyncio.run(check_vulnerable_services("example.com"))
+```
+
+#### Example 3: Monitor Service Availability
+
+Continuously monitor services and alert on status changes:
+
+```python
+import asyncio
+import time
+from datetime import datetime
+from mediainspect_rtsp.network import SimpleNetworkScanner
+
+class ServiceMonitor:
+    def __init__(self, host, ports, interval=300):
+        self.host = host
+        self.ports = ports
+        self.interval = interval
+        self.scanner = SimpleNetworkScanner()
+        self.known_services = {}
+    
+    async def check_services(self):
+        results = await self.scanner.scan_ports(self.host, self.ports)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Check for new services
+        for service in results.services:
+            port_key = f"{service.port}/{service.protocol}"
+            
+            if service.is_up and port_key not in self.known_services:
+                print(f"[{current_time}] NEW SERVICE: {port_key} - {service.service}")
+                self.known_services[port_key] = service
+            elif not service.is_up and port_key in self.known_services:
+                print(f"[{current_time}] SERVICE DOWN: {port_key} - {self.known_services[port_key].service}")
+                del self.known_services[port_key]
+    
+    async def run(self):
+        print(f"Starting service monitor for {self.host}...")
+        while True:
+            try:
+                await self.check_services()
+                await asyncio.sleep(self.interval)
+            except KeyboardInterrupt:
+                print("\nStopping monitor...")
+                break
+            except Exception as e:
+                print(f"Error during scan: {e}")
+                await asyncio.sleep(5)
+
+# Monitor common services
+monitor = ServiceMonitor(
+    host="example.com",
+    ports=[21, 22, 23, 25, 53, 80, 443, 3306, 3389, 5432, 8080, 8443],
+    interval=300  # 5 minutes
+)
+asyncio.run(monitor.run())
+```
+
+#### Example 4: Find RTSP Cameras on Local Network
+
+Scan for RTSP cameras on the local network:
+
+```python
+import asyncio
+import ipaddress
+from mediainspect_rtsp.network import SimpleNetworkScanner
+
+RTSP_PORTS = [554, 8554, 1935, 1936, 8080, 8081, 8082, 8888, 1935]
+
+def get_local_ips():
+    """Get all IPs in local network"""
+    # This is a simplified example - you might want to use a more robust method
+    network = ipaddress.IPv4Network("192.168.1.0/24", strict=False)
+    return [str(ip) for ip in network.hosts()]
+
+async def find_rtsp_cameras():
+    scanner = SimpleNetworkScanner(timeout=1.0)
+    local_ips = get_local_ips()
+    
+    print(f"Scanning {len(local_ips)} IPs for RTSP cameras...")
+    
+    for ip in local_ips:
+        try:
+            results = await scanner.scan_ports(ip, RTSP_PORTS)
+            for service in results.services:
+                if service.is_up and service.service == 'rtsp':
+                    print(f"\n🎥 Found RTSP camera at rtsp://{ip}:{service.port}")
+                    if service.banner:
+                        print(f"   Banner: {service.banner}")
+        except Exception as e:
+            print(f"Error scanning {ip}: {e}")
+
+asyncio.run(find_rtsp_cameras())
+```
+
+### Best Practices
+
+1. **Rate Limiting**:
+   - Add delays between scans to avoid overwhelming networks
+   - Use `asyncio.sleep()` between batches of scans
+
+2. **Error Handling**:
+   - Always wrap scans in try/except blocks
+   - Handle common exceptions like `ConnectionRefusedError`, `TimeoutError`
+
+3. **Performance**:
+   - Adjust the `timeout` parameter based on network conditions
+   - For large scans, process results in batches
+
+4. **Security**:
+   - Only scan networks you have permission to scan
+   - Be aware of legal implications in your jurisdiction
+   - Consider adding authentication when accessing services
+
 ## 📋 Prerequisites
 
 - Python 3.7+

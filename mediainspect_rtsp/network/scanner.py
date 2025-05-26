@@ -1,104 +1,109 @@
 """
-Core network scanning functionality.
+High-level network scanning interface.
+
+This module provides a simplified interface for common network scanning tasks,
+built on top of the lower-level scanner_worker.
 """
 import asyncio
-import time
-from typing import List, Dict, Any, Optional
+import logging
+from typing import List, Dict, Any, Optional, Set, Union
+from dataclasses import dataclass
+from datetime import datetime
 
-from . import models
+from .models import NetworkService, Protocol, ServiceStatus, ScanResult
+from .scanner_worker import ScannerWorker, ScanTask
+
+logger = logging.getLogger(__name__)
+
+# Common ports for well-known services
+COMMON_PORTS = {
+    'rtsp': [554, 8554, 1935, 1936],
+    'http': [80, 8080, 8000, 8888],
+    'https': [443, 8443],
+    'ssh': [22],
+    'vnc': [5900, 5901],
+    'rdp': [3389],
+    'mqtt': [1883],
+    'mqtts': [8883],
+    'rtmp': [1935],
+    'rtsp-tls': [322],
+    'sip': [5060, 5061],
+    'sip-tls': [5061],
+    'onvif': [3702],
+    'rtsp-over-http': [80, 8000, 8080, 8081, 8888],
+    'rtsp-over-https': [443, 8443],
+}
+
+# Reverse mapping for port to service name
+PORT_TO_SERVICE = {
+    port: service
+    for service, ports in COMMON_PORTS.items()
+    for port in ports
+}
 
 
 class SimpleNetworkScanner:
-    """Simple network scanner that doesn't require root privileges."""
+    """
+    High-level network scanner with common port scanning capabilities.
     
-    COMMON_PORTS = {
-        'rtsp': [554, 8554],
-        'http': [80, 8080, 8000, 8888],
-        'https': [443, 8443],
-        'ssh': [22],
-        'vnc': [5900, 5901],
-        'rdp': [3389],
-        'mqtt': [1883],
-        'mqtts': [8883]
-    }
+    This class provides a simple interface for common scanning tasks while
+    handling connection pooling, rate limiting, and concurrency internally.
+    """
     
-    def __init__(self, timeout: float = 2.0):
-        """Initialize the scanner with connection timeout."""
-        self.timeout = timeout
-    
-    async def check_port(self, ip: str, port: int) -> bool:
-        """Check if a port is open."""
-        try:
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(ip, port),
-                timeout=self.timeout
-            )
-            writer.close()
-            await writer.wait_closed()
-            return True
-        except (asyncio.TimeoutError, ConnectionRefusedError, OSError, ConnectionResetError):
-            return False
-    
-    async def identify_service(self, ip: str, port: int) -> Dict[str, Any]:
-        """Identify service running on the port."""
-        # First check common ports
-        for service, ports in self.COMMON_PORTS.items():
-            if port in ports:
-                return {
-                    'service': service,
-                    'protocol': 'tcp',
-                    'banner': '',
-                    'secure': service.endswith('s')
-                }
-        
-        # Try to grab banner for unknown ports
-        try:
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(ip, port),
-                timeout=self.timeout
-            )
-            
-            # Try to read banner if possible
-            try:
-                banner = await asyncio.wait_for(reader.read(1024), timeout=1.0)
-                banner = banner.decode('utf-8', errors='ignore').strip()
-            except (asyncio.TimeoutError, UnicodeDecodeError):
-                banner = ''
-                
-            writer.close()
-            await writer.wait_closed()
-            
-            return {
-                'service': 'unknown',
-                'protocol': 'tcp',
-                'banner': banner,
-                'secure': False
-            }
-            
-        except (asyncio.TimeoutError, ConnectionRefusedError, OSError, ConnectionResetError):
-            return {
-                'service': 'unknown',
-                'protocol': 'tcp',
-                'banner': '',
-                'secure': False
-            }
-    
-    async def scan_port(self, ip: str, port: int) -> models.NetworkService:
+    def __init__(
+        self,
+        max_concurrent: int = 100,
+        request_timeout: float = 2.0,
+        rate_limit: int = 1000,
+    ):
         """
-        Scan a single port and return service information.
+        Initialize the scanner.
         
         Args:
-            ip: IP address to scan
+            max_concurrent: Maximum number of concurrent connections
+            request_timeout: Default timeout for network requests
+            rate_limit: Maximum requests per second
+        """
+        self.max_concurrent = max_concurrent
+        self.request_timeout = request_timeout
+        self.rate_limit = rate_limit
+        self._worker = None
+    
+    async def _get_worker(self) -> ScannerWorker:
+        """Get or create a scanner worker."""
+        if self._worker is None:
+            self._worker = ScannerWorker(
+                max_concurrent=self.max_concurrent,
+                request_timeout=self.request_timeout,
+                rate_limit=self.rate_limit
+            )
+        return self._worker
+    
+    async def scan_port(
+        self,
+        ip: str,
+        port: int,
+        protocol: Protocol = Protocol.TCP,
+    ) -> NetworkService:
+        """
+        Scan a single port.
+        
+        Args:
+            ip: Target IP address or hostname
             port: Port number to scan
+            protocol: Network protocol (TCP/UDP)
             
         Returns:
-            NetworkService object with scan results
+            NetworkService with scan results
         """
-        is_open = await self.check_port(ip, port)
-        if not is_open:
-            return models.NetworkService(ip=ip, port=port, is_up=False)
+        worker = await self._get_worker()
+        service = await worker.scan_port(ip, port, protocol)
+        
+        # Set service name based on common ports
+        if service.status == ServiceStatus.UP and service.service == 'unknown':
+            service.service = PORT_TO_SERVICE.get(port, 'unknown')
             
-        service_info = await self.identify_service(ip, port)
+        return service
         
         return models.NetworkService(
             ip=ip,
