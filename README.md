@@ -66,8 +66,8 @@ The Makefile provides convenient commands for common tasks. Run `make help` to s
 
 ### Shell & Interactive Clients
 
-- `make shell`          – Start a Python shell in the package context
-- `make interactive`    – Start the interactive command-line client
+- `make shell`          – Start a Python shell in the package context (now in `scripts/`)
+- `make interactive`    – Start the interactive command-line client (now in `scripts/`)
 
 ### Help
 
@@ -81,6 +81,8 @@ Start an interactive Python shell with project context:
 make shell
 ```
 
+(Uses `scripts/shell_client.py`)
+
 ## 🖥️ Interactive CLI
 
 Launch the interactive command-line interface:
@@ -88,6 +90,8 @@ Launch the interactive command-line interface:
 ```bash
 make interactive
 ```
+
+(Uses `scripts/interactive_client.py`)
 
 ## 🔍 Network Scanning & Printing
 
@@ -314,6 +318,9 @@ rtsp-processor/
 │   ├── Dockerfile       # Container definition
 │   └── docker-compose.yml
 ├── .env.template        # Environment template
+├── scripts/
+│   ├── shell_client.py  # Shell client
+│   └── interactive_client.py  # Interactive client
 └── README.md           # This file
 ```
 
