@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mediainspect-rtsp"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python RTSP processor with motion detection, object recognition, and analysis capabilities."
 authors = ["Tom Sapletta <tom@mediainspect.com>"]
 license = "Apache-2.0"
