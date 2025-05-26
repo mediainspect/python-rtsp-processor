@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Network scanner script for DialogChain.
+Network scanner script for mediainspect.
 Provides basic network scanning capabilities without requiring root privileges.
 """
 
@@ -154,7 +154,7 @@ class SimpleNetworkScanner:
 
 async def main():
     """Main function for command-line usage."""
-    parser = argparse.ArgumentParser(description='Network scanner for DialogChain')
+    parser = argparse.ArgumentParser(description='Network scanner for mediainspect')
     parser.add_argument('--network', '-n', default='192.168.1.0/24',
                       help='Network to scan in CIDR notation (default: 192.168.1.0/24)')
     parser.add_argument('--service', '-s', action='append',

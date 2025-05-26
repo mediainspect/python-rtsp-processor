@@ -3,6 +3,10 @@
 Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/mediainspect/python-rtsp-processor/actions)
+[![PyPI version](https://badge.fury.io/py/mediainspect-rtsp.svg)](https://badge.fury.io/py/mediainspect-rtsp)
+[![License](https://img.shields.io/github/license/mediainspect/python-rtsp-processor.svg)](https://github.com/mediainspect/python-rtsp-processor/blob/main/LICENSE)
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Coverage Status](https://coveralls.io/repos/github/mediainspect/python-rtsp-processor/badge.svg?branch=main)](https://coveralls.io/github/mediainspect/python-rtsp-processor?branch=main)
 
 ## Author
 Tom Sapletta
@@ -95,7 +99,7 @@ make interactive
 
 ## 🔍 Network Scanning & Printing
 
-DialogChain includes powerful network scanning capabilities to discover devices like cameras and printers on your local network.
+mediainspect includes powerful network scanning capabilities to discover devices like cameras and printers on your local network.
 
 ### Scan for Network Devices
 
@@ -134,7 +138,7 @@ make print-test
 You can also use the network scanner directly in your Python code:
 
 ```python
-from dialogchain.scanner import NetworkScanner
+from mediainspect.scanner import NetworkScanner
 import asyncio
 
 async def scan_network():
@@ -155,47 +159,8 @@ asyncio.run(scan_network())
 
 ## 🖨️ Printing Support
 
-DialogChain includes basic printing capabilities using the CUPS (Common Unix Printing System) interface.
+mediainspect includes basic printing capabilities using the CUPS (Common Unix Printing System) interface.
 
-### Print Text
-
-```python
-import cups
-
-def print_text(text, printer_name=None):
-    conn = cups.Connection()
-    printers = conn.getPrinters()
-    
-    if not printers:
-        print("No printers available")
-        return
-        
-    printer = printer_name or list(printers.keys())[0]
-    job_id = conn.printFile(printer, "/dev/stdin", "DialogChain Print", {"raw": "True"}, text)
-    print(f"Sent print job {job_id} to {printer}")
-
-# Example usage
-print_text("Hello from DialogChain!")
-```
-
-### Print from File
-
-```python
-def print_file(file_path, printer_name=None):
-    conn = cups.Connection()
-    printers = conn.getPrinters()
-    
-    if not printers:
-        print("No printers available")
-        return
-        
-    printer = printer_name or list(printers.keys())[0]
-    job_id = conn.printFile(printer, file_path, "Document Print", {})
-    print(f"Sent print job {job_id} to {printer}")
-
-# Example usage
-print_file("document.pdf")
-```
 
 
 ## 🔧 Installation
@@ -324,15 +289,21 @@ rtsp-processor/
 └── README.md           # This file
 ```
 
-### Running Tests
+## 🧪 Running Tests
+
+This project uses pytest for testing. To run all tests:
 
 ```bash
-# Install dev dependencies
-pip install -r requirements-dev.txt
+make test
+```
 
-# Run tests
+Or directly with pytest:
+
+```bash
 pytest
 ```
+
+All modules in `mediainspect_rtsp/` are covered by basic import tests in `tests/`. Extend these with functional tests as needed.
 
 ## 🤝 Contributing
 
