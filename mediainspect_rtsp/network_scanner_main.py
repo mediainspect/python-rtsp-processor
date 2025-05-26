@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import json
-from simple_network_scanner import SimpleNetworkScanner
+from .simple_network_scanner import SimpleNetworkScanner
 
 async def main():
     parser = argparse.ArgumentParser(description="Network scanner for mediainspect.")

@@ -117,13 +117,6 @@ Find RTSP cameras on your network:
 make scan-cameras
 ```
 
-### Discover Printers
-
-List all available printers on your system:
-
-```bash
-make scan-printers
-```
 
 ### Print a Test Page
 

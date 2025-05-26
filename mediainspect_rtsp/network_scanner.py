@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
 Network scanner script for mediainspect.
-Provides basic network scanning capabilities without requiring root privileges.
+
+NOTE: This file is deprecated. Please use `simple_network_scanner.py` instead.
 """
 
-import asyncio
-import socket
-import aiohttp
-import argparse
-import json
-from typing import List, Optional, Dict, Any
-from dataclasses import dataclass, asdict
+import warnings
+warnings.warn(
+    "The 'network_scanner.py' module is deprecated. "
+    "Import from 'simple_network_scanner' instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
-@dataclass
-class NetworkService:
-    """Represents a discovered network service."""
-    ip: str
-    port: int
-    service: str = "unknown"
-    protocol: str = "tcp"
-    banner: str = ""
-    is_secure: bool = False
-    is_up: bool = True
+# Re-export everything from simple_network_scanner
+from .simple_network_scanner import *  # noqa
+
+# For backward compatibility
+__all__ = [
+    'NetworkService',
+    'SimpleNetworkScanner',
+    'main'
+]
 
 class SimpleNetworkScanner:
     """Simple network scanner that doesn't require root privileges."""

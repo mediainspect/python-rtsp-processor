@@ -1,6 +1,17 @@
 import asyncio
-from typing import List, Optional, Dict, Any
-from .network_service import NetworkService
+from typing import List, Optional, Dict, Any, Set
+from dataclasses import dataclass
+
+@dataclass
+class NetworkService:
+    """Represents a discovered network service."""
+    ip: str
+    port: int
+    service: str = "unknown"
+    protocol: str = "tcp"
+    banner: str = ""
+    is_secure: bool = False
+    is_up: bool = True
 
 class SimpleNetworkScanner:
     """Simple network scanner that doesn't require root privileges."""
@@ -51,3 +62,44 @@ class SimpleNetworkScanner:
             is_secure=service_info.get('secure', False),
             is_up=True
         )
+
+
+def parse_ports(ports_str: str) -> List[int]:
+    """
+    Parse a string of ports into a list of integers.
+    
+    Args:
+        ports_str: Comma-separated list of ports or port ranges (e.g., "80,443,8000-8002")
+        
+    Returns:
+        List of unique, sorted port numbers
+    """
+    ports: Set[int] = set()
+    
+    for part in ports_str.split(','):
+        part = part.strip()
+        if not part:
+            continue
+            
+        if '-' in part:
+            # Handle port range (e.g., "8000-8002")
+            try:
+                start, end = map(int, part.split('-'))
+                ports.update(range(start, end + 1))
+            except (ValueError, IndexError):
+                continue
+        else:
+            # Handle single port
+            try:
+                ports.add(int(part))
+            except ValueError:
+                continue
+    
+    return sorted(ports)
+
+
+__all__ = [
+    'SimpleNetworkScanner',
+    'NetworkService',
+    'parse_ports'
+]
