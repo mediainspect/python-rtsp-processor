@@ -1,5 +1,6 @@
 .idea
 .env
+venv
 models
 uploads
 deepspeech-0.9.3-models.pbmm

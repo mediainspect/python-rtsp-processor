@@ -52,6 +52,58 @@ def serialize_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
 
     return serializable_stats
 
+
+
+class FrameRateLimiter:
+    """Class to handle frame rate limiting"""
+
+    def __init__(self, target_fps: float):
+        """
+        Initialize frame rate limiter
+
+        Args:
+            target_fps: Target frames per second
+        """
+        self.target_fps = target_fps
+        self.frame_interval = 1.0 / target_fps
+        self.last_frame_time = 0
+        self.frame_count = 0
+        self.start_time = time.time()
+
+    def should_process_frame(self) -> bool:
+        """
+        Check if we should process this frame based on target FPS
+
+        Returns:
+            bool: True if frame should be processed
+        """
+        current_time = time.time()
+        elapsed = current_time - self.last_frame_time
+
+        if elapsed >= self.frame_interval:
+            self.last_frame_time = current_time
+            self.frame_count += 1
+            return True
+        return False
+
+    def get_actual_fps(self) -> float:
+        """
+        Calculate actual FPS
+
+        Returns:
+            float: Current actual FPS
+        """
+        elapsed = time.time() - self.start_time
+        return self.frame_count / elapsed if elapsed > 0 else 0
+
+    def reset(self):
+        """Reset the limiter"""
+        self.frame_count = 0
+        self.start_time = time.time()
+        self.last_frame_time = 0
+
+
+
 # Initialize Flask app
 app = Flask(__name__)
 
@@ -72,7 +124,6 @@ class VideoProcessor:
                  enable_object_detection: bool = True,
                  confidence_threshold: float = 0.5):
         """Initialize VideoProcessor with object detection"""
-        # ... (previous initialization code) ...
 
         # Initialize object detector
         self.enable_object_detection = enable_object_detection
@@ -80,6 +131,44 @@ class VideoProcessor:
             self.object_detector = ObjectDetector(
                 confidence_threshold=confidence_threshold
             )
+        self.rtsp_url = rtsp_url
+        self.target_fps = target_fps
+        self.motion_threshold = motion_threshold
+        self.blur_size = blur_size
+        self.min_object_size = min_object_size
+        self.max_object_size = max_object_size
+        self.reconnect_attempts = reconnect_attempts
+        self.reconnect_delay = reconnect_delay
+
+        self.last_frame_time = time.time()
+        self.frame_count = 0
+        self.start_time = time.time()
+
+        # Initialize frame rate limiter
+        self.frame_limiter = FrameRateLimiter(target_fps)
+
+        self.cap = None
+        self.is_connected = False
+        self.is_running = False
+
+        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(
+            history=100,
+            varThreshold=16,
+            detectShadows=True
+        )
+
+        # Initialize statistics
+        self.stats = {
+            'processed_frames': 0,
+            'skipped_frames': 0,
+            'total_frames': 0,
+            'actual_fps': 0.0,
+            'target_fps': float(target_fps),
+            'motion_detected': False,
+            'motion_percentage': 0.0,
+            'frame_size': (0, 0),
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
 
         # Add object detection stats
         self.stats.update({
@@ -87,6 +176,13 @@ class VideoProcessor:
             'detection_count': 0,
             'object_detection_enabled': enable_object_detection
         })
+
+        if self.rtsp_url:
+            self.connect()
+
+    def stop(self):
+        """Stop the processing loop"""
+        self.is_running = False
 
     def connect(self) -> bool:
         """Connect to RTSP stream with robust error handling"""

@@ -2,6 +2,14 @@
 
 Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV.
 
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/mediainspect/python-rtsp-processor/actions)
+
+## Author
+Tom Sapletta
+
+## Repository
+https://github.com/mediainspect/python-rtsp-processor.git
+
 ## 🚀 Features
 
 - **RTSP Stream Handling**
@@ -29,14 +37,171 @@ Real-time RTSP video stream processor with motion detection, object recognition,
 - OpenCV dependencies
 - Docker (optional)
 
+
+
+## 🛠️ Makefile Usage
+
+The Makefile provides convenient commands for common tasks. Run `make help` to see all available targets.
+
+### Project Management
+
+- `make install`        – Install dependencies
+- `make test`           – Run tests
+- `make lint`           – Lint code
+- `make run`            – Run the main application
+- `make clean`          – Remove caches
+
+### Network Scanning
+
+- `make scan-network`   – Scan the default network for common services
+- `make scan-cameras`   – Scan for cameras and related services
+- `make scan-camera IP=192.168.1.100` – Scan a specific camera IP
+- `make scan-quick`     – Quick scan of common ports
+- `make scan-full`      – Comprehensive scan
+- `make scan-local`     – Scan common local network ranges
+
+### Printer Management
+
+- `make scan-printers`  – List all available printers
+
+### Shell & Interactive Clients
+
+- `make shell`          – Start a Python shell in the package context
+- `make interactive`    – Start the interactive command-line client
+
+### Help
+
+- `make help`           – Show all available targets
+
+## 🐚 Shell Client
+
+Start an interactive Python shell with project context:
+
+```bash
+make shell
+```
+
+## 🖥️ Interactive CLI
+
+Launch the interactive command-line interface:
+
+```bash
+make interactive
+```
+
+## 🔍 Network Scanning & Printing
+
+DialogChain includes powerful network scanning capabilities to discover devices like cameras and printers on your local network.
+
+### Scan for Network Devices
+
+Scan your local network for various devices and services:
+
+```bash
+make scan-network
+```
+
+### Discover Cameras
+
+Find RTSP cameras on your network:
+
+```bash
+make scan-cameras
+```
+
+### Discover Printers
+
+List all available printers on your system:
+
+```bash
+make scan-printers
+```
+
+### Print a Test Page
+
+Send a test page to your default printer:
+
+```bash
+make print-test
+```
+
+### Using the Network Scanner in Python
+
+You can also use the network scanner directly in your Python code:
+
+```python
+from dialogchain.scanner import NetworkScanner
+import asyncio
+
+async def scan_network():
+    scanner = NetworkScanner()
+    
+    # Scan for all services
+    services = await scanner.scan_network()
+    
+    # Or scan for specific service types
+    cameras = await scanner.scan_network(service_types=['rtsp'])
+    
+    for service in services:
+        print(f"{service.ip}:{service.port} - {service.service} ({service.banner})")
+
+# Run the scan
+asyncio.run(scan_network())
+```
+
+## 🖨️ Printing Support
+
+DialogChain includes basic printing capabilities using the CUPS (Common Unix Printing System) interface.
+
+### Print Text
+
+```python
+import cups
+
+def print_text(text, printer_name=None):
+    conn = cups.Connection()
+    printers = conn.getPrinters()
+    
+    if not printers:
+        print("No printers available")
+        return
+        
+    printer = printer_name or list(printers.keys())[0]
+    job_id = conn.printFile(printer, "/dev/stdin", "DialogChain Print", {"raw": "True"}, text)
+    print(f"Sent print job {job_id} to {printer}")
+
+# Example usage
+print_text("Hello from DialogChain!")
+```
+
+### Print from File
+
+```python
+def print_file(file_path, printer_name=None):
+    conn = cups.Connection()
+    printers = conn.getPrinters()
+    
+    if not printers:
+        print("No printers available")
+        return
+        
+    printer = printer_name or list(printers.keys())[0]
+    job_id = conn.printFile(printer, file_path, "Document Print", {})
+    print(f"Sent print job {job_id} to {printer}")
+
+# Example usage
+print_file("document.pdf")
+```
+
+
 ## 🔧 Installation
 
 ### Using pip
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rtsp-processor.git
-cd rtsp-processor
+git clone https://github.com/mediainspect/python-rtsp-processor.git
+cd python-rtsp-processor
 
 # Create virtual environment
 python -m venv venv
@@ -44,6 +209,11 @@ source venv/bin/activate  # Windows: .\venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+```
+
+start
+```bash
+python main.py
 ```
 
 ### Using Docker
