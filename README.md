@@ -22,6 +22,13 @@ https://github.com/mediainspect/rtsp.git
   - Buffer management
   - Support for TCP/UDP protocols
 
+- **Network Scanning**
+  - Port scanning without root privileges
+  - Service identification
+  - Common port detection
+  - Concurrent scanning
+  - Banner grabbing
+
 - **Video Processing**
   - Motion detection
   - Object recognition
@@ -33,6 +40,85 @@ https://github.com/mediainspect/rtsp.git
   - Health checks
   - Processing statistics
   - Docker integration
+
+## 🌟 Network Scanning
+
+The `mediainspect_rtsp.network` package provides powerful network scanning capabilities without requiring root privileges.
+
+### Key Components
+
+- `SimpleNetworkScanner`: Main scanner class for port and service detection
+- `NetworkService`: Dataclass representing a discovered network service
+- `ScanResult`: Container for scan results with metadata
+
+### Basic Usage
+
+```python
+import asyncio
+from mediainspect_rtsp.network import SimpleNetworkScanner, format_scan_results
+
+async def main():
+    # Create a scanner instance
+    scanner = SimpleNetworkScanner(timeout=2.0)
+    
+    # Scan common ports on a host
+    results = await scanner.scan_common_ports("example.com")
+    print(format_scan_results(results))
+    
+    # Or scan specific ports
+    results = await scanner.scan_ports("example.com", [80, 443, 8080])
+    print(f"Found {len(results.services)} services")
+
+# Run the async function
+asyncio.run(main())
+```
+
+### Command Line Interface
+
+```bash
+# Scan common ports on a host
+python -m mediainspect_rtsp.network.main example.com --common
+
+# Scan specific ports
+python -m mediainspect_rtsp.network.main example.com --ports 80,443,8080-8090
+
+# With custom timeout
+python -m mediainspect_rtsp.network.main example.com --common --timeout 1.5
+```
+
+### API Reference
+
+#### `SimpleNetworkScanner`
+
+- `__init__(self, timeout: float = 2.0)`: Initialize with connection timeout
+- `scan_port(ip: str, port: int) -> NetworkService`: Scan a single port
+- `scan_ports(ip: str, ports: List[int]) -> ScanResult`: Scan multiple ports concurrently
+- `scan_common_ports(ip: str) -> ScanResult`: Scan all common ports
+- `check_port(ip: str, port: int) -> bool`: Check if a port is open
+- `identify_service(ip: str, port: int) -> Dict[str, Any]`: Identify service on a port
+
+#### `NetworkService`
+
+- `ip: str`: IP address of the service
+- `port: int`: Port number
+- `service: str`: Service name (e.g., 'http', 'ssh')
+- `protocol: str`: Protocol (usually 'tcp' or 'udp')
+- `banner: str`: Service banner if available
+- `is_secure: bool`: Whether the connection is secure
+- `is_up: bool`: Whether the service is up
+
+#### `ScanResult`
+
+- `services: List[NetworkService]`: List of discovered services
+- `duration: float`: Scan duration in seconds
+- `total_ports: int`: Total number of ports scanned
+- `open_ports: int`: Number of open ports found
+- `to_dict() -> Dict`: Convert results to dictionary
+
+#### Utility Functions
+
+- `parse_ports(ports_str: str) -> List[int]`: Parse port string (e.g., "80,443,8080-8090")
+- `format_scan_results(results: ScanResult) -> str`: Format results as a string
 
 ## 📋 Prerequisites
 
