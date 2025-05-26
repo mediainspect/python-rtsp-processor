@@ -1,4 +1,4 @@
-# Makefile for python-rtsp-processor
+# Makefile for rtsp
 
 .PHONY: install test lint run clean shell interactive help
 

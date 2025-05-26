@@ -2,17 +2,17 @@
 
 Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/mediainspect/python-rtsp-processor/actions)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/mediainspect/rtsp/actions)
 [![PyPI version](https://badge.fury.io/py/mediainspect-rtsp.svg)](https://badge.fury.io/py/mediainspect-rtsp)
-[![License](https://img.shields.io/github/license/mediainspect/python-rtsp-processor.svg)](https://github.com/mediainspect/python-rtsp-processor/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/mediainspect/rtsp.svg)](https://github.com/mediainspect/rtsp/blob/main/LICENSE)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Coverage Status](https://coveralls.io/repos/github/mediainspect/python-rtsp-processor/badge.svg?branch=main)](https://coveralls.io/github/mediainspect/python-rtsp-processor?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/mediainspect/rtsp/badge.svg?branch=main)](https://coveralls.io/github/mediainspect/rtsp?branch=main)
 
 ## Author
 Tom Sapletta
 
 ## Repository
-https://github.com/mediainspect/python-rtsp-processor.git
+https://github.com/mediainspect/rtsp.git
 
 ## 🚀 Features
 
@@ -169,8 +169,8 @@ mediainspect includes basic printing capabilities using the CUPS (Common Unix Pr
 
 ```bash
 # Clone the repository
-git clone https://github.com/mediainspect/python-rtsp-processor.git
-cd python-rtsp-processor
+git clone https://github.com/mediainspect/rtsp.git
+cd rtsp
 
 # Create virtual environment
 python -m venv venv
@@ -258,7 +258,7 @@ def process_frame(frame):
 
 - **Package name:** mediainspect-rtsp
 - **PyPI:** https://pypi.org/project/mediainspect-rtsp/
-- **Source:** https://github.com/mediainspect/python-rtsp-processor
+- **Source:** https://github.com/mediainspect/rtsp
 - **License:** Apache 2.0
 - **Author:** Tom Sapletta
 - **Description:** Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV.
@@ -278,7 +278,7 @@ processor = VideoProcessor(rtsp_url="rtsp://...", motion_threshold=25.0)
 processor.run()
 ```
 
-For more details, see the [PyPI page](https://pypi.org/project/mediainspect-rtsp/) and [documentation](https://github.com/mediainspect/python-rtsp-processor).
+For more details, see the [PyPI page](https://pypi.org/project/mediainspect-rtsp/) and [documentation](https://github.com/mediainspect/rtsp).
 
 ## 🔍 Monitor and Debug
 
