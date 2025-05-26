@@ -254,6 +254,32 @@ def process_frame(frame):
     return processed_frame
 ```
 
+## 📦 Python Package Information
+
+- **Package name:** mediainspect-rtsp
+- **PyPI:** https://pypi.org/project/mediainspect-rtsp/
+- **Source:** https://github.com/mediainspect/python-rtsp-processor
+- **License:** Apache 2.0
+- **Author:** Tom Sapletta
+- **Description:** Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV.
+
+### Installation
+
+```bash
+pip install mediainspect-rtsp
+```
+
+### Usage Example
+
+```python
+from mediainspect_rtsp.video_processor_rtsp_class import VideoProcessor
+
+processor = VideoProcessor(rtsp_url="rtsp://...", motion_threshold=25.0)
+processor.run()
+```
+
+For more details, see the [PyPI page](https://pypi.org/project/mediainspect-rtsp/) and [documentation](https://github.com/mediainspect/python-rtsp-processor).
+
 ## 🔍 Monitor and Debug
 
 ### Health Checks

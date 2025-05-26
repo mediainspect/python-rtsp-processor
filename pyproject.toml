@@ -1,13 +1,30 @@
 [tool.poetry]
 name = "mediainspect-rtsp"
-version = "0.1.2"
-description = "Python RTSP processor with motion detection, object recognition, and analysis capabilities."
+version = "0.1.0"
+description = "Real-time RTSP video stream processor with motion detection, object recognition, and analysis capabilities. Built with Python and OpenCV."
 authors = ["Tom Sapletta <tom@mediainspect.com>"]
 license = "Apache-2.0"
-repository = "https://github.com/mediainspect/python-rtsp-processor.git"
+repository = "https://github.com/mediainspect/python-rtsp-processor"
+homepage = "https://pypi.org/project/mediainspect-rtsp/"
+documentation = "https://github.com/mediainspect/python-rtsp-processor#readme"
+readme = "README.md"
+keywords = ["rtsp", "video", "stream", "opencv", "object detection", "motion detection", "network", "camera"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
+dotenv = "*"
+requests = "*"
+numpy = "*"
+opencv-python = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
